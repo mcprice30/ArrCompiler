@@ -4,7 +4,7 @@
 int main() {
   cout << "PARSER TEST" << std::endl;
 
-  Parser p = Parser(false);
+  Parser p = Parser(true);
 
   vector<string> tests;
   tests.push_back("1+1");
@@ -15,6 +15,8 @@ int main() {
   tests.push_back("-1*-2");
   tests.push_back("x[1*x[1+2] + 5] - 3 * x[2-1]");
   tests.push_back("(1+1)*(2+1)");
+  tests.push_back("1*(1+(2*3-4)*-2)-5*(1+-2)+7");
+  tests.push_back("2 - 1 - 1");
   tests.push_back("x[[1+1]*3 - 2");
 
   for (int i = 0; i < tests.size(); i++) {
@@ -38,63 +40,57 @@ string Parser::parseExp (string expr) {
   bool prevTokenOp = true;
   if (debug) { cout << "EXPR " << expr << endl; }
 
-  for (int i = 0; i < expr.size(); i++) {
+  for (int i = expr.size() - 1; i >= 0; i--) {
     char c = expr.at(i);
     if (c == '[') {
-      bracketDepth++;
-      prevTokenOp = true;
-    } else if (c == ']') {
       bracketDepth--;
       if (bracketDepth < 0) {
-        cerr << "Error: too many ']' without a matching '['" << endl;
+        cerr << "Error: too many '[' without a matching ']'" << endl;
         exit(1);
       }
-      prevTokenOp = false;
+    } else if (c == ']') {
+      bracketDepth++;
     } else if (c == '+' && bracketDepth == 0 && parenDepth == 0) {
       plusIdx = i;
       break;
     } else if (c == '-' && bracketDepth == 0 && parenDepth == 0) {
-      if (!prevTokenOp) {
+      //cout << "AT MINUS " << endl;
+      //cout << evalMinusAsSub(expr, i) << endl;
+      if (evalMinusAsSub(expr, i)) {
         minusIdx = i;
         break;
       }
     } else if (c == ' ') {
 
-    } else if (c == '*') {
-      prevTokenOp = true;
     } else if (c == '(') {
-      parenDepth ++;
-      prevTokenOp = true;
-    } else if (c == ')') {
-      parenDepth--;
+      parenDepth --;
       if (parenDepth < 0) {
-        cerr << "Error: too many ')' without a matching '('" << endl;
+        cerr << "Error: too many '(' without a matching ')'" << endl;
         exit(1);
       }
-      prevTokenOp = false;
-    } else {
-      prevTokenOp = false;
+    } else if (c == ')') {
+      parenDepth++;
     }
   }
 
   if (bracketDepth > 0) {
-    cerr << "Error: too many '[' without a matching ']'" << endl;
+    cerr << "Error: too many ']' without a matching '['" << endl;
     exit(1);
   }
 
   if (parenDepth > 0) {
-    cerr << "Error: too many '(' without a matching ')'" << endl;
+    cerr << "Error: too many ')' without a matching '('" << endl;
     exit(1);
   }
 
   if (plusIdx >= 0) {
-    string lTerm = expr.substr(0, plusIdx);
-    string rExp = expr.substr(plusIdx + 1);
-    return parseAdd(lTerm, rExp);
+    string lExp= expr.substr(0, plusIdx);
+    string rTerm = expr.substr(plusIdx + 1);
+    return parseAdd(lExp, rTerm);
   } else if (minusIdx >= 0) {
-    string lTerm = expr.substr(0, minusIdx);
-    string rExp = expr.substr(minusIdx + 1);
-    return parseSub(lTerm, rExp);
+    string lExp = expr.substr(0, minusIdx);
+    string rTerm = expr.substr(minusIdx + 1);
+    return parseSub(lExp, rTerm);
   } else {
     return parseTerm(expr);
   }
@@ -105,27 +101,27 @@ string Parser::parseTerm (string term) {
 
   if (debug) { cout << "TERM " << term << endl; }
 
-  for (int i = 0; i < term.size(); i++) {
+  for (int i = term.size() - 1; i >= 0; i--) {
     char c = term.at(i);
 
     if (c == '[') {
-      bracketDepth++;
-    } else if (c == ']') {
       bracketDepth--;
+    } else if (c == ']') {
+      bracketDepth++;
     } else if (c == '*' && bracketDepth == 0 && parenDepth == 0){
       mulIdx = i;
       break;
     } else if (c == '(') {
-      parenDepth++;
-    } else if (c == ')') {
       parenDepth--;
+    } else if (c == ')') {
+      parenDepth++;
     }
   }
 
   if (mulIdx >= 0) {
-    string lId = term.substr(0, mulIdx);
-    string rTerm = term.substr(mulIdx + 1);
-    return parseMul(lId, rTerm);
+    string lTerm = term.substr(0, mulIdx);
+    string rId = term.substr(mulIdx + 1);
+    return parseMul(lTerm, rId);
   } else {
     return parseId(term);
   }
@@ -139,12 +135,17 @@ string Parser::parseId(string id) {
   if (isNum(id)) {
     return parseNum(id);
   } else {
+    int parenDepth = 0;
     int idxLoc = -1;
     for (int i = 0; i < id.size(); i++) {
       char c = id.at(i);
-      if (c == '[') {
+      if (c == '[' && parenDepth == 0) {
         idxLoc = i;
         break;
+      } else if (c == '(') {
+        parenDepth ++;
+      } else if (c == ')') {
+        parenDepth--;
       }
     }
 
@@ -215,38 +216,38 @@ string Parser::parseId(string id) {
   }
 }
 
-string Parser::parseAdd(string lTerm, string rExp) {
-  if (debug) {cout << "PARSING: " << lTerm << " PLUS " << rExp << endl;}
+string Parser::parseAdd(string lExp, string rTerm) {
+  //if (debug) {cout << "PARSING: " << lExp << " PLUS " << rTerm << endl;}
   string out = "";
-  out += "; " + lTerm + " + " + rExp + "\r\n";
-  out += parseExp(rExp);
+  out += "; " + lExp+ " + " + rTerm + "\r\n";
+  out += parseTerm(rTerm);
   out += "push ebx\r\n";
   out += "mov ebx, eax\r\n";
-  out += parseTerm(lTerm);
+  out += parseExp(lExp);
   out += "add eax, ebx\r\n";
   out += "pop ebx\r\n";
   return out;
 }
 
-string Parser::parseSub(string lTerm, string rExp) {
+string Parser::parseSub(string lExp, string rTerm) {
   string out = "";
-  out += "; " + lTerm + " - " + rExp + "\r\n";
-  out += parseExp(rExp);
+  out += "; " + lExp + " - " + rTerm + "\r\n";
+  out += parseTerm(rTerm);
   out += "push ebx\r\n";
   out += "mov ebx, eax\r\n";
-  out += parseTerm(lTerm);
+  out += parseExp(lExp);
   out += "sub eax, ebx\r\n";
   out += "pop ebx\r\n";
   return out;
 }
 
-string Parser::parseMul(string lId, string rTerm) {
+string Parser::parseMul(string lTerm, string rId) {
   string out = "";
-  out += "; " + lId + " * " + rTerm + "\r\n";
-  out += parseTerm(rTerm);
+  out += "; " + lTerm + " * " + rId + "\r\n";
+  out += parseId(rId);
   out += "push ebx\r\n";
   out += "mov ebx, eax\r\n";
-  out += parseId(lId);
+  out += parseTerm(lTerm);
   out += "imul eax, ebx\r\n";
   out += "pop ebx\r\n";
   return out;
@@ -301,4 +302,21 @@ bool Parser::isNum(string text) {
   }
 
   return hasNum;
+}
+
+bool Parser::evalMinusAsSub(string text, int idx) {
+  for (int i = idx - 1; i >= 0; i--) {
+    char c = text.at(i);
+    //cout << c << endl;
+    if (c == '*' || c == '+' || c == '-' || c == '(' || c == '[') {
+      //cout << "OPERATOR" << endl;
+      return false;
+    } else if (c == ' ') {
+      //cout << "SPACE" << endl;
+    } else {
+      return true;
+    }
+  }
+  //cout << "DONE" << endl;
+  return false;
 }

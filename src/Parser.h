@@ -43,22 +43,22 @@ public:
   //============================
 
   // Function:  parseAdd
-  // Inputs:    lTerm - The term on the left-hand side of the '+' operator.
-  //            rExp  - The expression on the right side of the '+' operator.
+  // Inputs:    lExp - The expression on the left side of the '+' operator.
+  //            rExp  - The term on the right side of the '+' operator.
   // Outputs:   Assembly for the sum, using recursive descent.
-  string parseAdd(string lTerm, string rExp);
+  string parseAdd(string lExp, string rTerm);
 
   // Function:  parseSub
-  // Inputs:    lTerm - The term on the left-hand side of the '-' operator.
-  //            rExp  - The expression on the right side of the '-' operator.
+  // Inputs:    lExp - The expression on the left side of the '-' operator.
+  //            rTerm - The term on the right side of the '-' operator.
   // Outputs:   Assembly for the subtraction, using recursive descent.
-  string parseSub(string lTerm, string rExp);
+  string parseSub(string lExp, string rTerm);
 
   // Function:  parseMul
-  // Inputs:    lId   - The id on the left-hand side of the '*' operator.
-  //            rTerm - The term on the right side of the '*' operator.
+  // Inputs:    lTerm   - The term on the left side of the '*' operator.
+  //            rId - The id on the right side of the '*' operator.
   // Outputs:   Assembly for the multiplication, using recursive descent.
-  string parseMul(string lId, string rTerm);
+  string parseMul(string lTerm, string rId);
 
   // Function:  parseDeref
   // Inputs:    arrayName - The name of the array to access.
@@ -86,4 +86,11 @@ public:
   // Inputs:   text - A string to test.
   // Outputs:  true if text is a numerical value, false otherwise.
   bool isNum(string text);
+
+  // Function: evalMinusAsSub
+  // Inputs:   text - A string that the '-' character appears in.
+  //           index - The index that the '-' character appears in.
+  // Outputs:  true if this '-' operator denotes subtraction, false if it
+  //           denotes multiplication by -1.
+  bool evalMinusAsSub(string text, int index);
 };
