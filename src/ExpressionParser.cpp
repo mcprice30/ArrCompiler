@@ -13,6 +13,8 @@ int main() {
   tests.push_back("2 * 3 - 1 * 1");
   tests.push_back("x[1+1]*3 - 2");
   tests.push_back("-1*-2");
+  tests.push_back("x[1*x[1+2] + 5] - 3 * x[2-1]");
+  tests.push_back("(1+1)*(2+1)");
   tests.push_back("x[[1+1]*3 - 2");
 
   for (int i = 0; i < tests.size(); i++) {
@@ -32,7 +34,7 @@ Parser::Parser(bool debugSwitch) {
 }
 
 string Parser::parseExp (string expr) {
-  int plusIdx = -1, minusIdx = -1, bracketDepth = 0;
+  int plusIdx = -1, minusIdx = -1, bracketDepth = 0, parenDepth = 0;
   bool prevTokenOp = true;
   if (debug) { cout << "EXPR " << expr << endl; }
 
@@ -48,10 +50,10 @@ string Parser::parseExp (string expr) {
         exit(1);
       }
       prevTokenOp = false;
-    } else if (c == '+' && bracketDepth == 0) {
+    } else if (c == '+' && bracketDepth == 0 && parenDepth == 0) {
       plusIdx = i;
       break;
-    } else if (c == '-' && bracketDepth == 0) {
+    } else if (c == '-' && bracketDepth == 0 && parenDepth == 0) {
       if (!prevTokenOp) {
         minusIdx = i;
         break;
@@ -60,13 +62,28 @@ string Parser::parseExp (string expr) {
 
     } else if (c == '*') {
       prevTokenOp = true;
+    } else if (c == '(') {
+      parenDepth ++;
+      prevTokenOp = true;
+    } else if (c == ')') {
+      parenDepth--;
+      if (parenDepth < 0) {
+        cerr << "Error: too many ')' without a matching '('" << endl;
+        exit(1);
+      }
+      prevTokenOp = false;
     } else {
       prevTokenOp = false;
     }
   }
 
   if (bracketDepth > 0) {
-    cerr << "Error: too many '[' without a matching ']'" << endl; 
+    cerr << "Error: too many '[' without a matching ']'" << endl;
+    exit(1);
+  }
+
+  if (parenDepth > 0) {
+    cerr << "Error: too many '(' without a matching ')'" << endl;
     exit(1);
   }
 
@@ -84,7 +101,7 @@ string Parser::parseExp (string expr) {
 }
 
 string Parser::parseTerm (string term) {
-  int mulIdx = -1, bracketDepth = 0;
+  int mulIdx = -1, bracketDepth = 0, parenDepth = 0;
 
   if (debug) { cout << "TERM " << term << endl; }
 
@@ -95,9 +112,13 @@ string Parser::parseTerm (string term) {
       bracketDepth++;
     } else if (c == ']') {
       bracketDepth--;
-    } else if (c == '*' && bracketDepth == 0){
+    } else if (c == '*' && bracketDepth == 0 && parenDepth == 0){
       mulIdx = i;
       break;
+    } else if (c == '(') {
+      parenDepth++;
+    } else if (c == ')') {
+      parenDepth--;
     }
   }
 
@@ -151,8 +172,43 @@ string Parser::parseId(string id) {
         exit(1);
       }
     } else {
-      cerr << "Error: '" << id << "' cannot be resolved to a variable." << endl;
-      exit(1);
+      int parenStart = -1, parenEnd = -1;
+      for (int i = 0; i < id.size(); i++) {
+        if (id.at(i) == '(') {
+          parenStart = i;
+          break;
+        }
+      }
+
+      if (parenStart >= 0) {
+        for (int i = id.size() - 1; i > parenStart; i--) {
+          if (id.at(i) == ')') {
+            parenEnd = i;
+            break;
+          }
+        }
+
+        if (parenEnd >= 0) {
+          string leftOfParen = id.substr(0, parenStart);
+          string rightOfParen = id.substr(parenEnd + 1);
+          string insideParen = id.substr(parenStart + 1, parenEnd - parenStart - 1);
+          if (!isWhiteSpace(leftOfParen)) {
+            cerr << "Error: missing operator after " << leftOfParen << "." << endl;
+            exit(1);
+          } else if (!isWhiteSpace(rightOfParen)) {
+            cerr << "Error: missing operator before " << rightOfParen << "." << endl;
+            exit(1);
+          } else {
+            return parseExp(insideParen);
+          }
+        } else {
+          cerr << "Error: too many '(' without a matching ')'." << endl;
+          exit(1);
+        }
+      } else {
+        cerr << "Error: '" << id << "' cannot be resolved to a variable." << endl;
+        exit(1);
+      }
     }
 
     return " PARSE ERROR! \r\n";
