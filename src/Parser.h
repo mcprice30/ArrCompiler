@@ -93,4 +93,20 @@ public:
   // Outputs:  true if this '-' operator denotes subtraction, false if it
   //           denotes multiplication by -1.
   bool evalMinusAsSub(string text, int index);
+
+  // Function: isParenExp
+  // Inputs:   text - A string to evaluate.
+  // Outputs:  true if text is an expression surrounded by parentheses, false
+  //           otherwise.
+  bool isParenExp(string text);
+
+  // Function: isVariableLookup
+  // Inputs:   text - A string to evaluate.
+  // Outputs:  true if text is a variable access, false otherwise.
+  bool isVariableLookup(string text);
+
+  // Function: isValidVarName
+  // Inputs:   text - A string to evaluate.
+  // Outputs:  true if text is a valid variable name, false otherwise.
+  bool isValidVarName(string text);
 };

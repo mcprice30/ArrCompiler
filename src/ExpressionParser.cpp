@@ -1,6 +1,5 @@
 #include "Parser.h"
 
-
 int main() {
   cout << "PARSER TEST" << std::endl;
 
@@ -134,85 +133,45 @@ string Parser::parseId(string id) {
 
   if (isNum(id)) {
     return parseNum(id);
-  } else {
-    int parenDepth = 0;
-    int idxLoc = -1;
+  } else if (isVariableLookup(id)){
+    int arrStartIdx = -1, arrEndIdx = -1;
     for (int i = 0; i < id.size(); i++) {
-      char c = id.at(i);
-      if (c == '[' && parenDepth == 0) {
-        idxLoc = i;
+      if (id.at(i) == '[') {
+        arrStartIdx = i;
         break;
-      } else if (c == '(') {
-        parenDepth ++;
-      } else if (c == ')') {
-        parenDepth--;
+      }
+    }
+    for (int i = id.size() - 1; i >= 0; i--) {
+      if (id.at(i) == ']') {
+        arrEndIdx = i;
+        break;
       }
     }
 
-    if (idxLoc >= 0) {
-      int idxEnd = -1;
-      for (int i = id.size() - 1; i > idxLoc; i--) {
-        if (id.at(i) == ']') {
-          idxEnd = i;
-          break;
-        }
-      }
+    string beforeArray = id.substr(0, arrStartIdx);
+    string idxExp = id.substr(arrStartIdx + 1, arrEndIdx - arrStartIdx - 1);
+    return parseDeref(beforeArray, idxExp);
 
-      if (idxEnd >= 0) {
-        string beforeArray = id.substr(0, idxLoc);
-        string idxExp = id.substr(idxLoc + 1, (idxEnd - idxLoc - 1));
-        string afterIdx = id.substr(idxEnd + 1);
-        if (!isWhiteSpace(afterIdx)) {
-          cerr << "Error: missing operator before '" << afterIdx << "'." << endl;
-          exit(1);
-        } else {
-          return parseDeref(beforeArray, idxExp);
-        }
-      } else {
-        cerr << "Error: too many '[' without a matching ']'." << endl;
-        exit(1);
-      }
-    } else {
-      int parenStart = -1, parenEnd = -1;
-      for (int i = 0; i < id.size(); i++) {
-        if (id.at(i) == '(') {
-          parenStart = i;
-          break;
-        }
-      }
-
-      if (parenStart >= 0) {
-        for (int i = id.size() - 1; i > parenStart; i--) {
-          if (id.at(i) == ')') {
-            parenEnd = i;
-            break;
-          }
-        }
-
-        if (parenEnd >= 0) {
-          string leftOfParen = id.substr(0, parenStart);
-          string rightOfParen = id.substr(parenEnd + 1);
-          string insideParen = id.substr(parenStart + 1, parenEnd - parenStart - 1);
-          if (!isWhiteSpace(leftOfParen)) {
-            cerr << "Error: missing operator after " << leftOfParen << "." << endl;
-            exit(1);
-          } else if (!isWhiteSpace(rightOfParen)) {
-            cerr << "Error: missing operator before " << rightOfParen << "." << endl;
-            exit(1);
-          } else {
-            return parseExp(insideParen);
-          }
-        } else {
-          cerr << "Error: too many '(' without a matching ')'." << endl;
-          exit(1);
-        }
-      } else {
-        cerr << "Error: '" << id << "' cannot be resolved to a variable." << endl;
-        exit(1);
+  } else if (isParenExp(id)) {
+    int parenStartIdx = -1, parenEndIdx = -1;
+    for (int i = 0; i < id.size(); i++) {
+      if (id.at(i) == '(') {
+        parenStartIdx = i;
+        break;
       }
     }
+    for (int i = id.size() -1; i >= 0; i--) {
+      if (id.at(i) == ')') {
+        parenEndIdx = i;
+        break;
+      }
+    }
+    string insideParen = id.substr(parenStartIdx + 1, parenEndIdx - parenStartIdx - 1);
+    return parseExp(insideParen);
 
-    return " PARSE ERROR! \r\n";
+  } else {
+    cerr << "Error: cannot resolve " << id << "." << endl;
+    exit(1);
   }
 }
 
@@ -319,4 +278,96 @@ bool Parser::evalMinusAsSub(string text, int idx) {
   }
   //cout << "DONE" << endl;
   return false;
+}
+
+bool Parser::isParenExp(string text) {
+  for (int i = 0; i < text.size(); i++) {
+    char c = text.at(i);
+    if (c == '(') {
+      break;
+    } else if (c == ' ') {
+
+    } else {
+      return false;
+    }
+  }
+
+  for (int i = text.size() - 1; i >= 0; i--) {
+    char c = text.at(i);
+    if (c == ')') {
+      break;
+    } else if (c == ' ') {
+
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Parser::isVariableLookup(string text) {
+  for (int i = text.size() - 1; i >= 0; i--) {
+    char c = text.at(i);
+    if (c == ']') {
+      break;
+    } else if (c == ' ') {
+
+    } else {
+      return false;
+    }
+  }
+  int openBracketIdx = -1;
+  for (int i = 0; i < text.size(); i++) {
+    if (text.at(i) == '[') {
+      openBracketIdx = i;
+      break;
+    }
+  }
+  if (openBracketIdx < 0) {
+    return false;
+  } else {
+    return isValidVarName(text.substr(0, openBracketIdx));
+  }
+}
+
+bool Parser::isValidVarName(string text) {
+  string test = " " + text;
+  int end = -1, start = -1;
+  for (int i = test.size() - 1; i >= 0; i--) {
+    if (test.at(i) != ' ') {
+      end = i;
+      break;
+    }
+  }
+  if (end < 0) {
+    return false;
+  }
+
+  for (int i = end; i > 0; i--) {
+    char c = test.at(i);
+    char p = test.at(i-1);
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || p == '_') {
+      start = i;
+    } else if (c >= '0' && c <= '9') {
+      if ((p >= 'a' && p <= 'z') || (p >= 'A' && p <= 'Z') || (p >= '0' && p <= '9') || p == '_') {
+        start = i;
+      } else {
+        return false;
+      }
+    } else if (c == ' ') {
+      if (p == ' ') {
+
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  if (test.substr(start, 1 + end - start) == "for") {
+    return false;
+  }
+
+  return true;
 }
