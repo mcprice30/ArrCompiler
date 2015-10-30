@@ -1,35 +1,5 @@
 #include "Parser.h"
 
-int main() {
-  cout << "PARSER TEST" << std::endl;
-
-  Parser p = Parser(true);
-
-  vector<string> tests;
-  tests.push_back("1+1");
-  tests.push_back("1 + 1");
-  tests.push_back("1 - 2");
-  tests.push_back("2 * 3 - 1 * 1");
-  tests.push_back("x[1+1]*3 - 2");
-  tests.push_back("-1*-2");
-  tests.push_back("x[1*x[1+2] + 5] - 3 * x[2-1]");
-  tests.push_back("(1+1)*(2+1)");
-  tests.push_back("1*(1+(2*3-4)*-2)-5*(1+-2)+7");
-  tests.push_back("2 - 1 - 1");
-  tests.push_back("x[[1+1]*3 - 2");
-
-  for (int i = 0; i < tests.size(); i++) {
-    string test = tests.at(i);
-    cout << test << endl;
-    cout << "ASSEMBLY: " << endl;
-    cout << endl;
-    cout << p.parseExp(test) << endl;
-    cout << endl;
-  }
-
-  return 0;
-}
-
 Parser::Parser(bool debugSwitch) {
   debug = debugSwitch;
 }

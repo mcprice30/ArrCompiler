@@ -1,3 +1,6 @@
+#ifndef PARSER_H
+#define PARSER_H
+
 #include <string>
 #include <iostream>
 #include <vector>
@@ -15,7 +18,6 @@ public:
   // Constructor for Parser.
   // Inputs: debugSwitch - true to enable debugging statements, false otherwise.
   Parser(bool debugSwitch);
-
 
   // =======================================
   // ==     Primary Grammar Parsing       ==
@@ -110,3 +112,5 @@ public:
   // Outputs:  true if text is a valid variable name, false otherwise.
   bool isValidVarName(string text);
 };
+
+#endif
