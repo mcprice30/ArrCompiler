@@ -1,7 +1,10 @@
 #include "Parser.h"
 
+using namespace std;
+
 Parser::Parser(bool debugSwitch) {
   debug = debugSwitch;
+  pUtil = ParseUtil();
 }
 
 string Parser::compileExp(string expr) {
@@ -41,7 +44,7 @@ bool Parser::parseExp (string expr, string &out) {
     } else if (c == '-' && bracketDepth == 0 && parenDepth == 0) {
       //cout << "AT MINUS " << endl;
       //cout << evalMinusAsSub(expr, i) << endl;
-      if (evalMinusAsSub(expr, i)) {
+      if (pUtil.evalMinusAsSub(expr, i)) {
         minusIdx = i;
         break;
       }
@@ -119,9 +122,9 @@ bool Parser::parseId(string id, string &out) {
 
   if (debug) { cout << "ID " << id << endl; }
 
-  if (isNum(id)) {
+  if (pUtil.isNum(id)) {
     return parseNum(id, out);
-  } else if (isVariableLookup(id)){
+  } else if (pUtil.isVariableLookup(id)){
     int arrStartIdx = -1, arrEndIdx = -1;
     for (int i = 0; i < id.size(); i++) {
       if (id.at(i) == '[') {
@@ -140,7 +143,7 @@ bool Parser::parseId(string id, string &out) {
     string idxExp = id.substr(arrStartIdx + 1, arrEndIdx - arrStartIdx - 1);
     return parseDeref(beforeArray, idxExp, out);
 
-  } else if (isParenExp(id)) {
+  } else if (pUtil.isParenExp(id)) {
     int parenStartIdx = -1, parenEndIdx = -1;
     for (int i = 0; i < id.size(); i++) {
       if (id.at(i) == '(') {
@@ -229,161 +232,5 @@ bool Parser::parseNum(string number, string &out) {
   out = "";
   out += "; assignment\r\n";
   out += "mov eax, " + number + "\r\n";
-  return true;
-}
-
-bool Parser::isWhiteSpace(string text) {
-  for (int i = 0; i < text.size(); i++) {
-    if (text.at(i) != ' ') {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool Parser::isNum(string text) {
-  bool hasNum = false;
-  bool hasMinus = false;
-
-  for (int i = 0; i < text.size(); i++) {
-    char c = text.at(i);
-
-    if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5'
-                 || c == '6' || c == '7' || c == '8' || c == '9' ) {
-
-      hasNum = true;
-    } else if (c == '-') {
-      if (hasMinus || hasNum) {
-        return false;
-      } else {
-        hasMinus = true;
-      }
-    } else if (c == ' ') {
-      if (hasNum) {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-
-  if (!hasNum) {
-    cout << "Error: '" << text << "' cannot be resolved to an integer." << endl;
-    return false;
-  }
-
-  return hasNum;
-}
-
-bool Parser::evalMinusAsSub(string text, int idx) {
-  for (int i = idx - 1; i >= 0; i--) {
-    char c = text.at(i);
-    //cout << c << endl;
-    if (c == '*' || c == '+' || c == '-' || c == '(' || c == '[') {
-      //cout << "OPERATOR" << endl;
-      return false;
-    } else if (c == ' ') {
-      //cout << "SPACE" << endl;
-    } else {
-      return true;
-    }
-  }
-  //cout << "DONE" << endl;
-  return false;
-}
-
-bool Parser::isParenExp(string text) {
-  bool lFound = false;
-  bool rFound = false;
-  for (int i = 0; i < text.size(); i++) {
-    char c = text.at(i);
-    if (c == '(') {
-      lFound = true;
-      break;
-    } else if (c == ' ') {
-
-    } else {
-      return false;
-    }
-  }
-
-  for (int i = text.size() - 1; i >= 0; i--) {
-    char c = text.at(i);
-    if (c == ')') {
-      rFound = true;
-      break;
-    } else if (c == ' ') {
-
-    } else {
-      return false;
-    }
-  }
-  return (lFound && rFound);
-}
-
-bool Parser::isVariableLookup(string text) {
-  for (int i = text.size() - 1; i >= 0; i--) {
-    char c = text.at(i);
-    if (c == ']') {
-      break;
-    } else if (c == ' ') {
-
-    } else {
-      return false;
-    }
-  }
-  int openBracketIdx = -1;
-  for (int i = 0; i < text.size(); i++) {
-    if (text.at(i) == '[') {
-      openBracketIdx = i;
-      break;
-    }
-  }
-  if (openBracketIdx < 0) {
-    return false;
-  } else {
-    return isValidVarName(text.substr(0, openBracketIdx));
-  }
-}
-
-bool Parser::isValidVarName(string text) {
-  string test = " " + text;
-  int end = -1, start = -1;
-  for (int i = test.size() - 1; i >= 0; i--) {
-    if (test.at(i) != ' ') {
-      end = i;
-      break;
-    }
-  }
-  if (end < 0) {
-    return false;
-  }
-
-  for (int i = end; i > 0; i--) {
-    char c = test.at(i);
-    char p = test.at(i-1);
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || p == '_') {
-      start = i;
-    } else if (c >= '0' && c <= '9') {
-      if ((p >= 'a' && p <= 'z') || (p >= 'A' && p <= 'Z') || (p >= '0' && p <= '9') || p == '_') {
-        start = i;
-      } else {
-        return false;
-      }
-    } else if (c == ' ') {
-      if (p == ' ') {
-
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-
-  if (test.substr(start, 1 + end - start) == "for") {
-    return false;
-  }
-
   return true;
 }

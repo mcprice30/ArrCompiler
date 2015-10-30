@@ -1,10 +1,13 @@
 #include "Parser.h"
 #include "Tester.h"
 
+using namespace std;
+
 int main() {
   cout << "PARSER TEST" << std::endl;
 
-  Parser p = Parser(true);
+  Parser parse = Parser(true);
+  ParseUtil p = ParseUtil();
   Tester t = Tester();
 
   t.expectEqual(p.isValidVarName("for"), false, "Variable test 1");
@@ -13,6 +16,8 @@ int main() {
   t.expectEqual(p.isValidVarName("abc1"), true, "Variable test 4");
   t.expectEqual(p.isValidVarName("a+b"), false, "Variable test 5");
   t.expectEqual(p.isValidVarName("a "), true, "Variable test 6");
+  t.expectEqual(p.isValidVarName("print"), false, "Variable test 7");
+  t.expectEqual(p.isValidVarName("printchar"), false, "Variable test 8");
 
   t.expectEqual(p.isVariableLookup("a[1+1]"), true, "Lookup test 1");
   t.expectEqual(p.isVariableLookup("abc1[]"), true, "Lookup test 2");
@@ -29,13 +34,20 @@ int main() {
   t.expectEqual(p.isParenExp("[(a)]"), false, "Paren test 5");
   t.expectEqual(p.isParenExp("((1))"), true, "Paren test 6");
 
-  t.expectEqual(p.isNum("1"), true, "Num test 1");
+  t.expectEqual(p.isNum("1 "), true, "Num test 1");
   t.expectEqual(p.isNum("-1"), true, "Num test 2");
   t.expectEqual(p.isNum(" - 1"), true, "Num test 3");
   t.expectEqual(p.isNum(" - - 1"), false, "Num test 4");
   t.expectEqual(p.isNum("!2"), false, "Num test 5");
   t.expectEqual(p.isNum("5a"), false, "Num test 6");
   t.expectEqual(p.isNum("1-1"), false, "Num test 7");
+  t.expectEqual(p.isNum("'a'"), true, "Num test 8");
+  t.expectEqual(p.isNum(" 'a' "), true, "Num test 9");
+  t.expectEqual(p.isNum("'\n'"), true, "Num test 10");
+  t.expectEqual(p.isNum("'aa'"), false, "Num test 11");
+  t.expectEqual(p.isNum("'a'b "), false, "Num test 12");
+  t.expectEqual(p.isNum("b'a'"), false, "Num test 13");
+  t.expectEqual(p.isNum("a'b'a"), false, "Num test 14");
 
   t.printResults();
 
@@ -59,12 +71,13 @@ int main() {
   tests.push_back("1+*1");
   tests.push_back("&1");
   tests.push_back("?");
+  tests.push_back("1+1+1-1-1-1*1+1*1");
 
   for (int i = 0; i < tests.size(); i++) {
     string test = tests.at(i);
     cout << test << endl;
     cout << endl;
-    cout << p.compileExp(test) << endl;
+    cout << parse.compileExp(test) << endl;
     cout << endl;
   }
 
