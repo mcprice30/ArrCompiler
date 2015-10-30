@@ -19,26 +19,36 @@ public:
   // Inputs: debugSwitch - true to enable debugging statements, false otherwise.
   Parser(bool debugSwitch);
 
+  // ===========================
+  // ==    Driver Function    ==
+  // ===========================
+
+  // Function: compileExp
+  // Inputs:   expr - an expression to compile.
+  // Outputs:  The compiled expression, or a statement saying that the expression
+  //           cannot be compiled.
+  string compileExp (string expr);
+
   // =======================================
   // ==     Primary Grammar Parsing       ==
   // =======================================
 
   // Function:  parseExp
-  // Inputs:    expr - an expression to parse. Expresions are terms separated by
+  // Inputs:    expr - an expression to parse. Expressions are terms separated by
   //            + or - operators.
   // Outputs:   Assembly for the expression, using recursive descent.
-  string parseExp (string expr);
+  bool parseExp (string expr, string &out);
 
   // Function:  parseTerm
   // Inputs:    term - a term to parse. Terms are ids separated by * operators.
   // Outputs:   Assembly for the term, using recursive descent.
-  string parseTerm (string term);
+  bool parseTerm (string term, string &out);
 
   // Function:  parseId
   // Inputs:    id - an id to parse. Ids are numbers, array accesses, or
   //            expressions in parentheses.
   // Outputs:   Assembly for the id, using recursive descent.
-  string parseId(string id);
+  bool parseId(string id, string &out);
 
   //============================
   //==    Operation Parsing   ==
@@ -48,19 +58,19 @@ public:
   // Inputs:    lExp - The expression on the left side of the '+' operator.
   //            rExp  - The term on the right side of the '+' operator.
   // Outputs:   Assembly for the sum, using recursive descent.
-  string parseAdd(string lExp, string rTerm);
+  bool parseAdd(string lExp, string rTerm, string &out);
 
   // Function:  parseSub
   // Inputs:    lExp - The expression on the left side of the '-' operator.
   //            rTerm - The term on the right side of the '-' operator.
   // Outputs:   Assembly for the subtraction, using recursive descent.
-  string parseSub(string lExp, string rTerm);
+  bool parseSub(string lExp, string rTerm, string &out);
 
   // Function:  parseMul
   // Inputs:    lTerm   - The term on the left side of the '*' operator.
   //            rId - The id on the right side of the '*' operator.
   // Outputs:   Assembly for the multiplication, using recursive descent.
-  string parseMul(string lTerm, string rId);
+  bool parseMul(string lTerm, string rId, string &out);
 
   // Function:  parseDeref
   // Inputs:    arrayName - The name of the array to access.
@@ -68,12 +78,12 @@ public:
   // Outputs:   Assembly for the deference.
   // TODO: Finish this function. parseDeref currently evaluates this as
   //       (indexExp) rather than deferencing the array.
-  string parseDeref(string arrayName, string indexExp);
+  bool parseDeref(string arrayName, string indexExp, string &out);
 
   // Function: parseNum
   // Inputs:   number - A string to parse as a number.
   // Outputs:  Assembly for a number literal.
-  string parseNum(string number);
+  bool parseNum(string number, string &out);
 
   //===========================
   //==   Utility Functions   ==

@@ -41,7 +41,7 @@ int main() {
     cout << test << endl;
     cout << "ASSEMBLY: " << endl;
     cout << endl;
-    cout << p.parseExp(test) << endl;
+    cout << p.compileExp(test) << endl;
     cout << endl;
   }
 

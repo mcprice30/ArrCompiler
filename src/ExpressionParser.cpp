@@ -4,7 +4,19 @@ Parser::Parser(bool debugSwitch) {
   debug = debugSwitch;
 }
 
-string Parser::parseExp (string expr) {
+string Parser::compileExp(string expr) {
+  string output = "";
+  bool result = parseExp(expr, output);
+
+  if (result) {
+    return output;
+  } else {
+    return "Did not compile.";
+  }
+}
+
+bool Parser::parseExp (string expr, string &out) {
+  bool success = false;
   int plusIdx = -1, minusIdx = -1, bracketDepth = 0, parenDepth = 0;
   bool prevTokenOp = true;
   if (debug) { cout << "EXPR " << expr << endl; }
@@ -14,8 +26,8 @@ string Parser::parseExp (string expr) {
     if (c == '[') {
       bracketDepth--;
       if (bracketDepth < 0) {
-        cerr << "Error: too many '[' without a matching ']'" << endl;
-        exit(1);
+        cout << "Error: too many '[' without a matching ']'" << endl;
+        return false;
       }
     } else if (c == ']') {
       bracketDepth++;
@@ -34,8 +46,8 @@ string Parser::parseExp (string expr) {
     } else if (c == '(') {
       parenDepth --;
       if (parenDepth < 0) {
-        cerr << "Error: too many '(' without a matching ')'" << endl;
-        exit(1);
+        cout << "Error: too many '(' without a matching ')'" << endl;
+        return false;
       }
     } else if (c == ')') {
       parenDepth++;
@@ -43,29 +55,31 @@ string Parser::parseExp (string expr) {
   }
 
   if (bracketDepth > 0) {
-    cerr << "Error: too many ']' without a matching '['" << endl;
-    exit(1);
+    cout << "Error: too many ']' without a matching '['" << endl;
+    return false;
   }
 
   if (parenDepth > 0) {
-    cerr << "Error: too many ')' without a matching '('" << endl;
-    exit(1);
+    cout << "Error: too many ')' without a matching '('" << endl;
+    return false;
   }
 
   if (plusIdx >= 0) {
     string lExp= expr.substr(0, plusIdx);
     string rTerm = expr.substr(plusIdx + 1);
-    return parseAdd(lExp, rTerm);
+    success = parseAdd(lExp, rTerm, out);
   } else if (minusIdx >= 0) {
     string lExp = expr.substr(0, minusIdx);
     string rTerm = expr.substr(minusIdx + 1);
-    return parseSub(lExp, rTerm);
+    success = parseSub(lExp, rTerm, out);
   } else {
-    return parseTerm(expr);
+    success = parseTerm(expr, out);
   }
+  return success;
 }
 
-string Parser::parseTerm (string term) {
+bool Parser::parseTerm (string term, string &out) {
+  bool success = false;
   int mulIdx = -1, bracketDepth = 0, parenDepth = 0;
 
   if (debug) { cout << "TERM " << term << endl; }
@@ -90,19 +104,19 @@ string Parser::parseTerm (string term) {
   if (mulIdx >= 0) {
     string lTerm = term.substr(0, mulIdx);
     string rId = term.substr(mulIdx + 1);
-    return parseMul(lTerm, rId);
+    return parseMul(lTerm, rId, out);
   } else {
-    return parseId(term);
+    return parseId(term, out);
   }
 
 }
 
-string Parser::parseId(string id) {
+bool Parser::parseId(string id, string &out) {
 
   if (debug) { cout << "ID " << id << endl; }
 
   if (isNum(id)) {
-    return parseNum(id);
+    return parseNum(id, out);
   } else if (isVariableLookup(id)){
     int arrStartIdx = -1, arrEndIdx = -1;
     for (int i = 0; i < id.size(); i++) {
@@ -120,7 +134,7 @@ string Parser::parseId(string id) {
 
     string beforeArray = id.substr(0, arrStartIdx);
     string idxExp = id.substr(arrStartIdx + 1, arrEndIdx - arrStartIdx - 1);
-    return parseDeref(beforeArray, idxExp);
+    return parseDeref(beforeArray, idxExp, out);
 
   } else if (isParenExp(id)) {
     int parenStartIdx = -1, parenEndIdx = -1;
@@ -137,66 +151,81 @@ string Parser::parseId(string id) {
       }
     }
     string insideParen = id.substr(parenStartIdx + 1, parenEndIdx - parenStartIdx - 1);
-    return parseExp(insideParen);
+    return parseExp(insideParen, out);
 
   } else {
-    cerr << "Error: cannot resolve " << id << "." << endl;
-    exit(1);
+    cout << "Error: cannot resolve " << id << "." << endl;
+    return false;
   }
 }
 
-string Parser::parseAdd(string lExp, string rTerm) {
+bool Parser::parseAdd(string lExp, string rTerm, string &out) {
   //if (debug) {cout << "PARSING: " << lExp << " PLUS " << rTerm << endl;}
-  string out = "";
+  bool success = true;
+  string lOut = "", rOut = "";
+  out = "";
   out += "; " + lExp+ " + " + rTerm + "\r\n";
-  out += parseTerm(rTerm);
+  success = success && parseTerm(rTerm, rOut);
+  out += rOut;
   out += "push ebx\r\n";
   out += "mov ebx, eax\r\n";
-  out += parseExp(lExp);
+  success = success && parseExp(lExp, lOut);
+  out += lOut;
   out += "add eax, ebx\r\n";
   out += "pop ebx\r\n";
-  return out;
+  return success;
 }
 
-string Parser::parseSub(string lExp, string rTerm) {
-  string out = "";
+bool Parser::parseSub(string lExp, string rTerm, string &out) {
+  string rOut = "", lOut = "";
+  bool success = true;
+  out = "";
   out += "; " + lExp + " - " + rTerm + "\r\n";
-  out += parseTerm(rTerm);
+  success = success && parseTerm(rTerm, rOut);
+  out += rOut;
   out += "push ebx\r\n";
   out += "mov ebx, eax\r\n";
-  out += parseExp(lExp);
+  success = success && parseExp(lExp, lOut);
+  out += lOut;
   out += "sub eax, ebx\r\n";
   out += "pop ebx\r\n";
-  return out;
+  return success;
 }
 
-string Parser::parseMul(string lTerm, string rId) {
-  string out = "";
+bool Parser::parseMul(string lTerm, string rId, string &out) {
+  string lOut = "", rOut = "";
+  bool success = true;
+  out = "";
   out += "; " + lTerm + " * " + rId + "\r\n";
-  out += parseId(rId);
+  success = success && parseId(rId, rOut);
+  out += rOut;
   out += "push ebx\r\n";
   out += "mov ebx, eax\r\n";
-  out += parseTerm(lTerm);
+  success = success && parseTerm(lTerm, lOut);
+  out += lOut;
   out += "imul eax, ebx\r\n";
   out += "pop ebx\r\n";
-  return out;
+  return success;
 }
 
-string Parser::parseDeref(string arrayName, string indexExp) {
-  string out = "";
+bool Parser::parseDeref(string arrayName, string indexExp, string &out) {
+  bool success = true;
+  string pOut = "";
+  out = "";
   out += "; " + arrayName + "[ " + indexExp + " ]\r\n";
   out += "; NOTE: DEREFERENCING IS NOT YET IMPLEMENTED\r\n";
   out += "; This is currently evaluated as: (" + indexExp + ")\r\n";
-  out += parseExp(indexExp);
-  return out;
+  success = parseExp(indexExp, pOut);
+  out += pOut;
+  return success;
 }
 
-string Parser::parseNum(string number) {
+bool Parser::parseNum(string number, string &out) {
   if(debug) {cout << "NUMBER" << endl;}
-  string out = "";
+  out = "";
   out += "; assignment\r\n";
   out += "mov eax, " + number + "\r\n";
-  return out;
+  return true;
 }
 
 bool Parser::isWhiteSpace(string text) {
