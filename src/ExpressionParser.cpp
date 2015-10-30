@@ -21,6 +21,10 @@ bool Parser::parseExp (string expr, string &out) {
   bool prevTokenOp = true;
   if (debug) { cout << "EXPR " << expr << endl; }
 
+  if(expr == "") {
+    return false;
+  }
+
   for (int i = expr.size() - 1; i >= 0; i--) {
     char c = expr.at(i);
     if (c == '[') {
@@ -221,7 +225,7 @@ bool Parser::parseDeref(string arrayName, string indexExp, string &out) {
 }
 
 bool Parser::parseNum(string number, string &out) {
-  if(debug) {cout << "NUMBER" << endl;}
+  if(debug) {cout << "NUMBER " << number << endl;}
   out = "";
   out += "; assignment\r\n";
   out += "mov eax, " + number + "\r\n";
@@ -239,6 +243,7 @@ bool Parser::isWhiteSpace(string text) {
 
 bool Parser::isNum(string text) {
   bool hasNum = false;
+  bool hasMinus = false;
 
   for (int i = 0; i < text.size(); i++) {
     char c = text.at(i);
@@ -247,16 +252,24 @@ bool Parser::isNum(string text) {
                  || c == '6' || c == '7' || c == '8' || c == '9' ) {
 
       hasNum = true;
-    } else if (c == '-' || c == ' ') {
-
+    } else if (c == '-') {
+      if (hasMinus || hasNum) {
+        return false;
+      } else {
+        hasMinus = true;
+      }
+    } else if (c == ' ') {
+      if (hasNum) {
+        return false;
+      }
     } else {
       return false;
     }
   }
 
   if (!hasNum) {
-    cerr << "Error: '" << text << "' cannot be resolved to an integer." << endl;
-    exit(1);
+    cout << "Error: '" << text << "' cannot be resolved to an integer." << endl;
+    return false;
   }
 
   return hasNum;
@@ -280,9 +293,12 @@ bool Parser::evalMinusAsSub(string text, int idx) {
 }
 
 bool Parser::isParenExp(string text) {
+  bool lFound = false;
+  bool rFound = false;
   for (int i = 0; i < text.size(); i++) {
     char c = text.at(i);
     if (c == '(') {
+      lFound = true;
       break;
     } else if (c == ' ') {
 
@@ -294,6 +310,7 @@ bool Parser::isParenExp(string text) {
   for (int i = text.size() - 1; i >= 0; i--) {
     char c = text.at(i);
     if (c == ')') {
+      rFound = true;
       break;
     } else if (c == ' ') {
 
@@ -301,7 +318,7 @@ bool Parser::isParenExp(string text) {
       return false;
     }
   }
-  return true;
+  return (lFound && rFound);
 }
 
 bool Parser::isVariableLookup(string text) {
