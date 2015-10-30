@@ -7,6 +7,11 @@ ExpParser::ExpParser(bool debugSwitch) {
   pUtil = ParseUtil();
 }
 
+ExpParser::ExpParser() {
+  debug = false;
+  pUtil = ParseUtil();
+}
+
 string ExpParser::compileExp(string expr) {
   string output = "";
   bool result = parseExp(expr, output);

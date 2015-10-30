@@ -21,6 +21,7 @@ public:
   // Inputs: debugSwitch - true to enable debugging statements, false otherwise.
   ExpParser(bool debugSwitch);
 
+  ExpParser();
   // ===========================
   // ==    Driver Function    ==
   // ===========================
