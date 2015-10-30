@@ -1,6 +1,6 @@
-#include "Parser.h"
+#include "ExpParser.h"
 
 int main() {
-  Parser p = Parser(false);
+  ExpParser p = ExpParser(false);
   return 0;
 }

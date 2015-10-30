@@ -1,13 +1,13 @@
-#include "Parser.h"
+#include "ExpParser.h"
 
 using namespace std;
 
-Parser::Parser(bool debugSwitch) {
+ExpParser::ExpParser(bool debugSwitch) {
   debug = debugSwitch;
   pUtil = ParseUtil();
 }
 
-string Parser::compileExp(string expr) {
+string ExpParser::compileExp(string expr) {
   string output = "";
   bool result = parseExp(expr, output);
 
@@ -18,7 +18,7 @@ string Parser::compileExp(string expr) {
   }
 }
 
-bool Parser::parseExp (string expr, string &out) {
+bool ExpParser::parseExp (string expr, string &out) {
   bool success = false;
   int plusIdx = -1, minusIdx = -1, bracketDepth = 0, parenDepth = 0;
   bool prevTokenOp = true;
@@ -85,7 +85,7 @@ bool Parser::parseExp (string expr, string &out) {
   return success;
 }
 
-bool Parser::parseTerm (string term, string &out) {
+bool ExpParser::parseTerm (string term, string &out) {
   bool success = false;
   int mulIdx = -1, bracketDepth = 0, parenDepth = 0;
 
@@ -118,7 +118,7 @@ bool Parser::parseTerm (string term, string &out) {
 
 }
 
-bool Parser::parseId(string id, string &out) {
+bool ExpParser::parseId(string id, string &out) {
 
   if (debug) { cout << "ID " << id << endl; }
 
@@ -166,7 +166,7 @@ bool Parser::parseId(string id, string &out) {
   }
 }
 
-bool Parser::parseAdd(string lExp, string rTerm, string &out) {
+bool ExpParser::parseAdd(string lExp, string rTerm, string &out) {
   //if (debug) {cout << "PARSING: " << lExp << " PLUS " << rTerm << endl;}
   bool success = true;
   string lOut = "", rOut = "";
@@ -183,7 +183,7 @@ bool Parser::parseAdd(string lExp, string rTerm, string &out) {
   return success;
 }
 
-bool Parser::parseSub(string lExp, string rTerm, string &out) {
+bool ExpParser::parseSub(string lExp, string rTerm, string &out) {
   string rOut = "", lOut = "";
   bool success = true;
   out = "";
@@ -199,7 +199,7 @@ bool Parser::parseSub(string lExp, string rTerm, string &out) {
   return success;
 }
 
-bool Parser::parseMul(string lTerm, string rId, string &out) {
+bool ExpParser::parseMul(string lTerm, string rId, string &out) {
   string lOut = "", rOut = "";
   bool success = true;
   out = "";
@@ -215,7 +215,7 @@ bool Parser::parseMul(string lTerm, string rId, string &out) {
   return success;
 }
 
-bool Parser::parseDeref(string arrayName, string indexExp, string &out) {
+bool ExpParser::parseDeref(string arrayName, string indexExp, string &out) {
   bool success = true;
   string pOut = "";
   out = "";
@@ -227,7 +227,7 @@ bool Parser::parseDeref(string arrayName, string indexExp, string &out) {
   return success;
 }
 
-bool Parser::parseNum(string number, string &out) {
+bool ExpParser::parseNum(string number, string &out) {
   if(debug) {cout << "NUMBER " << number << endl;}
   out = "";
   out += "; assignment\r\n";

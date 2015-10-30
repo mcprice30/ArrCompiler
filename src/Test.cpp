@@ -1,4 +1,4 @@
-#include "Parser.h"
+#include "ExpParser.h"
 #include "Tester.h"
 
 using namespace std;
@@ -6,7 +6,7 @@ using namespace std;
 int main() {
   cout << "PARSER TEST" << std::endl;
 
-  Parser parse = Parser(true);
+  ExpParser parse = ExpParser(true);
   ParseUtil p = ParseUtil();
   Tester t = Tester();
 
