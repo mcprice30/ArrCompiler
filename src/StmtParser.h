@@ -12,6 +12,7 @@ private:
   bool debug;
   ExpParser expParser;
   ParseUtil parseUtil;
+  int loopCount;
 
 public:
   // Constructor for StmtParser
@@ -41,6 +42,12 @@ public:
   // Outputs:  true if the expression is valid, false otherwise.
   //           out - contains the compiled assembly for the print statement.
   bool parsePrintChar(std::string text, std::string &out);
+
+  // Function: parseForLoop
+  // Inputs:   text - The source code of the for loop.
+  // Outputs:  true if the for statement is valid, false otherwise.
+  //           out - contains the compiled assembly for the for loop.
+  bool parseForLoop(std::string text, std::string &out);
 
 };
 

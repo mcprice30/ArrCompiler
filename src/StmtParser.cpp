@@ -6,6 +6,7 @@ StmtParser::StmtParser(bool debugSwitch) {
   debug = debugSwitch;
   expParser = ExpParser(debugSwitch);
   parseUtil = ParseUtil();
+  loopCount = 1;
 }
 
 bool StmtParser::parseStmtList(string text, string &out) {
@@ -87,7 +88,7 @@ bool StmtParser::parseStmt(string text, string &out) {
     string stmtList = text.substr(beginIdx + 1, closeIdx - beginIdx - 1);
     return parseStmtList(stmtList, out);
 
-  } else {
+  } else { // assignment.
 
   }
 
@@ -108,4 +109,9 @@ bool StmtParser::parsePrintChar(string text, string &out) {
   out = evalResult;
   out += "; TODO: call print char function on eax.\r\n";
   return result;
+}
+
+bool StmtParser::parseForLoop(string text, string &out) {
+  out += "; ERROR: for loop currently unsupported!\r\n";
+  return false;
 }

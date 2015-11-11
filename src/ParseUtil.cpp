@@ -168,6 +168,10 @@ bool ParseUtil::isValidVarName(string text) {
     return false;
   } else if (varName == "printchar") {
     return false;
+  } else if (varName == "to") {
+    return false;
+  } else if (varName == "do") {
+    return false;
   }
 
   return true;
