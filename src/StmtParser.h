@@ -4,6 +4,7 @@
 #include "ExpParser.h"
 #include "ParseUtil.h"
 
+#include <sstream>
 #include <iostream>
 #include <string>
 

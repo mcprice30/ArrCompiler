@@ -112,6 +112,24 @@ bool StmtParser::parsePrintChar(string text, string &out) {
 }
 
 bool StmtParser::parseForLoop(string text, string &out) {
-  out += "; ERROR: for loop currently unsupported!\r\n";
-  return false;
+  //out += "; ERROR: for loop currently unsupported!\r\n";
+  stringstream ss;
+  ss << loopCount++;
+  string loopName = ss.str();
+  out += "; beginning of for loop";
+  string evalResult = "";
+  out += "push ecx\r\nmov ecx, 0\r\n";
+  out += "top_" + loopName + ": nop\r\n";
+  out += "; TODO: DA EXPRESSIONS\r\n";
+  out += "push ebx\r\n";
+  out += "mov eax, ebx\r\n";
+  out += ": TODO: DA EXPRESSIONS 2\r\n";
+  out += "add eax, ecx\r\ninc ecx\r\n";
+  out += "cmp eax, ebx\r\npop ebx\r\n";
+  out += "jge done_" + loopName + "\r\n";
+  out += "; TODO: store eax in x [eval index]\r\n";
+  out += "; TODO: eval statement inside loop\r\n";
+  out += "jmp top_" + loopName + "\r\n";
+  out += "done_" + loopName + "; pop ecx\r\n";
+  return true;
 }
