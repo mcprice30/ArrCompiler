@@ -112,9 +112,8 @@ bool StmtParser::parsePrintChar(string text, string &out) {
 }
 
 bool StmtParser::parseForLoop(string text, string &out) {
-  // for x[exp1] := exp2 to exp3 do S
-  // 01234567890123456789012345678901
-  // 00000000001111111111222222222233
+  // for arrName[exp1] := exp2 to exp3 do stmt
+
   string arrName, exp_1, exp_2, exp_3, stmt;
   int arrNameEnd = -1, bracketDepth = 0, idxExpEnd = -1, assignOpIdx, toIdx, doIdx;
 
@@ -208,7 +207,13 @@ bool StmtParser::parseForLoop(string text, string &out) {
   out += "add eax, ecx\r\ninc ecx\r\n";
   out += "cmp eax, ebx\r\npop ebx\r\n";
   out += "jge done_" + loopName + "\r\n";
-  out += "; TODO: store eax in x [eval index]\r\n";
+  out += "push ebx\r\n";
+  out += "mov eax, ebx\r\n";
+  compiled = compiled && expParser.parseExp(exp_1, evalResult);
+  out += evalResult;
+  out += "; push eax\r\n; push ebx \r\n; push arrName\r\n";
+  out += "; call storeValue\r\n; add esp, 12\r\n";
+  out += "pop ebx\r\n";
   out += "; TODO: eval statement inside loop\r\n";
   out += "jmp top_" + loopName + "\r\n";
   out += "done_" + loopName + ": pop ecx\r\n";
