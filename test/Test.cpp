@@ -1,12 +1,14 @@
 #include "../src/ExpParser.h"
+#include "../src/StmtParser.h"
 #include "Tester.h"
 
 using namespace std;
 
 int main() {
-  cout << "PARSER TEST" << std::endl;
+  cout << "EXPRESSION PARSER TEST" << std::endl;
 
   ExpParser parse = ExpParser(true);
+  StmtParser sparse = StmtParser(true);
   ParseUtil p = ParseUtil();
   Tester t = Tester();
 
@@ -72,12 +74,31 @@ int main() {
   tests.push_back("&1");
   tests.push_back("?");
   tests.push_back("1+1+1-1-1-1*1+1*1");
+  tests.push_back("7+(2* 1) *3");
+  tests.push_back("2854321*(27*83+92-87)*278");
 
   for (int i = 0; i < tests.size(); i++) {
     string test = tests.at(i);
     cout << test << endl;
     cout << endl;
     cout << parse.compileExp(test) << endl;
+    cout << endl;
+  }
+
+  tests.clear();
+  tests.push_back("x[5] := 1");
+  tests.push_back("x[x[1] + x[2]] := 5*5*(x[3]-4)");
+  tests.push_back("print x[1]");
+  tests.push_back("printchar x[2]");
+  tests.push_back("for x[1]:= 1 to 5 do x[2] := x[2] + x[1]");
+  tests.push_back("for x[11]:= 12 to 50 do (x[1] := x[2] + x[3]; x[2] := x[3] + x[4]); print x[1]");
+  tests.push_back("for x[1] := 1 to 5 do for x[2] := 1 to 5 do x[3] := x[3] + x[1] + x[2]; print x[3]");
+  tests.push_back("for x[1] := 1 to 5 do (for x[2] := 1 to 5 do x[3] := x[3] + x[2]; print x[1]); print x[3]");
+  for (int i = 0; i < tests.size(); i++) {
+    string test = tests.at(i);
+    cout << test << endl;
+    cout << endl;
+    cout << sparse.compile(test) << endl;
     cout << endl;
   }
 

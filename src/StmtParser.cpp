@@ -9,6 +9,18 @@ StmtParser::StmtParser(bool debugSwitch) {
   loopCount = 1;
 }
 
+
+string StmtParser::compile(string stmtList) {
+  string output = "";
+  bool result = parseStmtList(stmtList, output);
+
+  if (result) {
+    return output;
+  } else {
+    return "Did not compile.";
+  }
+}
+
 bool StmtParser::parseStmtList(string text, string &out) {
   int parenDepth = 0, semiIdx = -1;
 
@@ -32,15 +44,17 @@ bool StmtParser::parseStmtList(string text, string &out) {
     if (success) {
       success = success && parseStmtList(leftList, slout);
       out = slout;
-      out += "\r\n;Next Statement\r\n";
+      out += "\r\n; Next Statement\r\n";
       out += sout;
       return success;
     } else {
+      cout << "Unable to parse statement." << endl;
       return false;
     }
   } else {
     return parseStmt(text, out);
   }
+  cout << "How did I get here?" << endl;
   return false;
 }
 
@@ -89,9 +103,9 @@ bool StmtParser::parseStmt(string text, string &out) {
     return parseStmtList(stmtList, out);
 
   } else { // assignment.
-
+    return parseAssignment(text, out);
   }
-
+  cout << "How did I get here?" << endl;
   return false;
 }
 
@@ -177,13 +191,18 @@ bool StmtParser::parseForLoop(string text, string &out) {
 
   int forStart = text.find("for");
 
-  arrName = text.substr(forStart + 3, arrNameEnd - forStart - 4);
-  exp_1 = text.substr(arrNameEnd + 1, idxExpEnd - arrNameEnd - 2);
-  exp_2 = text.substr(assignOpIdx + 2, toIdx - assignOpIdx - 3);
-  exp_3 = text.substr(toIdx + 4, doIdx - toIdx - 5);
+  arrName = text.substr(forStart + 4, arrNameEnd - forStart - 4);
+  exp_1 = text.substr(arrNameEnd + 1, idxExpEnd - arrNameEnd - 1);
+  exp_2 = text.substr(assignOpIdx + 3, toIdx - assignOpIdx - 3);
+  exp_3 = text.substr(toIdx + 4, doIdx - toIdx - 4);
   stmt = text.substr(doIdx + 4);
 
   if (debug) {
+    cout << "arrayName " << (forStart + 4) << " length " << (arrNameEnd - forStart - 4) << endl;
+    cout << "exp1 " << (arrNameEnd+1) << " length " << (idxExpEnd - arrNameEnd - 1) << endl;
+    cout << "exp2 " << (assignOpIdx + 3) << " length " << (toIdx - assignOpIdx - 3) << endl;
+    cout << "exp3 " << (toIdx + 4) << " length " << (doIdx - toIdx - 4) << endl;
+    cout << text << " " << text.substr(3, 1) << endl;
     cout << "FOR: " << arrName << " at " << exp_1 << endl;
     cout << "FROM: " << exp_2 << " to " << exp_3 << endl;
     cout << "DO: " << stmt << endl;
@@ -194,27 +213,29 @@ bool StmtParser::parseForLoop(string text, string &out) {
   stringstream ss;
   ss << loopCount++;
   string loopName = ss.str();
-  out += "; beginning of for loop";
+  out += "; beginning of for loop\r\n";
   string evalResult = "";
   out += "push ecx\r\nmov ecx, 0\r\n";
   out += "top_" + loopName + ": nop\r\n";
   compiled = compiled && expParser.parseExp(exp_3, evalResult);
   out += evalResult;
   out += "push ebx\r\n";
-  out += "mov eax, ebx\r\n";
+  out += "mov ebx, eax\r\n";
   compiled = compiled && expParser.parseExp(exp_2, evalResult);
   out += evalResult;
   out += "add eax, ecx\r\ninc ecx\r\n";
   out += "cmp eax, ebx\r\npop ebx\r\n";
   out += "jge done_" + loopName + "\r\n";
   out += "push ebx\r\n";
-  out += "mov eax, ebx\r\n";
+  out += "mov ebx, eax\r\n";
   compiled = compiled && expParser.parseExp(exp_1, evalResult);
   out += evalResult;
   out += "; push eax\r\n; push ebx \r\n; push arrName\r\n";
   out += "; call storeValue\r\n; add esp, 12\r\n";
   out += "pop ebx\r\n";
-  out += "; TODO: eval statement inside loop\r\n";
+  evalResult = "";
+  compiled = compiled && parseStmt(stmt, evalResult);
+  out += evalResult;
   out += "jmp top_" + loopName + "\r\n";
   out += "done_" + loopName + ": pop ecx\r\n";
   return compiled;
@@ -276,20 +297,27 @@ bool StmtParser::parseAssignment(string text, string &out) {
 
     //string lhs = text.substr(0, assignOpIdx);
   string varName = text.substr(0, b1Idx);
+  if (!parseUtil.isValidVarName(varName)) {
+    cout << "Error: cannot name array: " << varName << endl;
+    return false;
+  }
   string idxExp = text.substr(b1Idx + 1, b2Idx - b1Idx - 1);
   string rhs = text.substr(assignOpIdx+2);
+  string evalResult = "";
   bool compiled = true;
   out += "; assignment statement for: " + text + "\r\n";
   out += "; pushing array name\r\n";
   out += "push " + varName + "\r\n";
   out += "; pushing index expression: " + idxExp + "\r\n";
-  compiled = compiled && expParser.parseExp(idxExp, out);
+  compiled = compiled && expParser.parseExp(idxExp, evalResult);
+  out += evalResult;
   out += "push eax\r\n";
   out += "; pushing rhs expression: " + rhs + "\r\n";
-  compiled = compiled && expParser.parseExp(rhs, out);
+  compiled = compiled && expParser.parseExp(rhs, evalResult);
+  out += evalResult;
   out += "push eax\r\n";
   out += "; TODO: call assignment function\r\n";
-  out += "add esp, 12";
+  out += "add esp, 12\r\n";
   return compiled;
 
 }

@@ -105,7 +105,7 @@ bool ParseUtil::isVariableLookup(string text) {
     char c = text.at(i);
     if (c == ']') {
       break;
-    } else if (c == ' ') {
+    } else if (c == ' ' || c == '\r' || c == '\n') {
 
     } else {
       return false;

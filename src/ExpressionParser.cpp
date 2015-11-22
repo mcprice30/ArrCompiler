@@ -30,6 +30,7 @@ bool ExpParser::parseExp (string expr, string &out) {
   if (debug) { cout << "EXPR " << expr << endl; }
 
   if(expr == "") {
+    cout << "Error: empty expression." << endl;
     return false;
   }
 

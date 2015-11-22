@@ -20,6 +20,12 @@ public:
   // Inputs: debugSwitch - True to enable debuging printouts, false otherwise.
   StmtParser(bool debugSwitch);
 
+
+  // Function: compile
+  // Inputs:   stmtList - The statement list (start symbol) to compile
+  // Outputs:  The compiled assembly for the statements list.
+  std::string compile(std::string stmtList);
+
   // Function: parseStmtList
   // Inputs:   text - The list of statements to parse.
   // Outputs:  true if compilation succeeds without error, false otherwise.
