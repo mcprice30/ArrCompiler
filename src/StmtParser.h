@@ -50,6 +50,12 @@ public:
   //           out - contains the compiled assembly for the for loop.
   bool parseForLoop(std::string text, std::string &out);
 
+  // Function: parseAssignment
+  // Inputs:   text - The source code of the assignment statement.
+  // Outputs:  true if the assignment statement is valid, false otherwise.
+  //           out - contains the compiled asssembly for the assignment.
+  bool parseAssignment(std::string text, std::string &out);
+
 };
 
 #endif
