@@ -24,6 +24,11 @@ string StmtParser::compile(string stmtList) {
 bool StmtParser::parseStmtList(string text, string &out) {
   int parenDepth = 0, semiIdx = -1;
 
+  if (debug) {
+    cout << "STMT LIST " << text << endl;
+  }
+
+
   for (int i = text.size() - 1; i >= 0; i--) {
     char c = text.at(i);
     if (c == ')') {
@@ -59,6 +64,12 @@ bool StmtParser::parseStmtList(string text, string &out) {
 }
 
 bool StmtParser::parseStmt(string text, string &out) {
+
+
+  if (debug) {
+    cout << "STMT " << text << endl;
+  }
+
   int beginIdx = -1;
   for (int i = 0; i < text.size(); i++) {
     if (text.at(i) != ' ' && text.at(i) != '\r' && text.at(i) != '\n') {
@@ -67,9 +78,9 @@ bool StmtParser::parseStmt(string text, string &out) {
     }
   }
 
-  if (beginIdx < 0) {
-    cout << "Error: statements cannot be empty." << endl;
-    return false;
+  if (beginIdx < 0) { // parse empty statement
+    //cout << "Error: statements cannot be empty." << endl;
+    return true;
   }
 
   if (text.find("print ") == beginIdx) {      // print
@@ -113,7 +124,9 @@ bool StmtParser::parsePrint(string text, string &out) {
   string evalResult = "";
   bool result = expParser.parseExp(text, evalResult);
   out = evalResult;
-  out += "; TODO: call print function on eax.\r\n";
+  out += "; Printing value\r\n";
+  out += "push ecx\r\npush eax\r\ncall _print\r\nadd esp, 4\r\npop ecx\r\n";
+  //out += "; TODO: call print function on eax.\r\n";
   return result;
 }
 
@@ -121,7 +134,9 @@ bool StmtParser::parsePrintChar(string text, string &out) {
   string evalResult = "";
   bool result = expParser.parseExp(text, evalResult);
   out = evalResult;
-  out += "; TODO: call print char function on eax.\r\n";
+  out += "; Printing value\r\n";
+  out += "push ecx\r\npush eax\r\ncall _printChar\r\nadd esp, 4\r\npop ecx\r\n";
+  //out += "; TODO: call print char function on eax.\r\n";
   return result;
 }
 
@@ -198,11 +213,11 @@ bool StmtParser::parseForLoop(string text, string &out) {
   stmt = text.substr(doIdx + 4);
 
   if (debug) {
-    cout << "arrayName " << (forStart + 4) << " length " << (arrNameEnd - forStart - 4) << endl;
-    cout << "exp1 " << (arrNameEnd+1) << " length " << (idxExpEnd - arrNameEnd - 1) << endl;
-    cout << "exp2 " << (assignOpIdx + 3) << " length " << (toIdx - assignOpIdx - 3) << endl;
-    cout << "exp3 " << (toIdx + 4) << " length " << (doIdx - toIdx - 4) << endl;
-    cout << text << " " << text.substr(3, 1) << endl;
+    //cout << "arrayName " << (forStart + 4) << " length " << (arrNameEnd - forStart - 4) << endl;
+    //cout << "exp1 " << (arrNameEnd+1) << " length " << (idxExpEnd - arrNameEnd - 1) << endl;
+    //cout << "exp2 " << (assignOpIdx + 3) << " length " << (toIdx - assignOpIdx - 3) << endl;
+    //cout << "exp3 " << (toIdx + 4) << " length " << (doIdx - toIdx - 4) << endl;
+    //cout << text << " " << text.substr(3, 1) << endl;
     cout << "FOR: " << arrName << " at " << exp_1 << endl;
     cout << "FROM: " << exp_2 << " to " << exp_3 << endl;
     cout << "DO: " << stmt << endl;
@@ -230,7 +245,7 @@ bool StmtParser::parseForLoop(string text, string &out) {
   out += "mov ebx, eax\r\n";
   compiled = compiled && expParser.parseExp(exp_1, evalResult);
   out += evalResult;
-  out += "; push eax\r\n; push ebx \r\n; push arrName\r\n";
+  out += "; push arrName\r\n; push eax \r\n; push ebx\r\n";
   out += "; call storeValue\r\n; add esp, 12\r\n";
   out += "pop ebx\r\n";
   evalResult = "";
@@ -316,7 +331,7 @@ bool StmtParser::parseAssignment(string text, string &out) {
   compiled = compiled && expParser.parseExp(rhs, evalResult);
   out += evalResult;
   out += "push eax\r\n";
-  out += "; TODO: call assignment function\r\n";
+  out += "call _setValue\r\n";
   out += "add esp, 12\r\n";
   return compiled;
 

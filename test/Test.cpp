@@ -92,8 +92,8 @@ int main() {
   tests.push_back("printchar x[2]");
   tests.push_back("for x[1]:= 1 to 5 do x[2] := x[2] + x[1]");
   tests.push_back("for x[11]:= 12 to 50 do (x[1] := x[2] + x[3]; x[2] := x[3] + x[4]); print x[1]");
-  tests.push_back("for x[1] := 1 to 5 do for x[2] := 1 to 5 do x[3] := x[3] + x[1] + x[2]; print x[3]");
-  tests.push_back("for x[1] := 1 to 5 do (for x[2] := 1 to 5 do x[3] := x[3] + x[2]; print x[1]); print x[3]");
+  tests.push_back("for x[1] := 1 to 5 do for x[2] := 1 to 5 do x[3] := x[3] + x[1] + x[2]; print x[3];");
+  tests.push_back("for x[1] := 1 to 5 do (for x[2] := 1 to 5 do x[3] := x[3] + x[2]; print x[1]); print x[3];");
   for (int i = 0; i < tests.size(); i++) {
     string test = tests.at(i);
     cout << test << endl;

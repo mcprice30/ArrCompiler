@@ -225,11 +225,15 @@ bool ExpParser::parseDeref(string arrayName, string indexExp, string &out) {
   bool success = true;
   string pOut = "";
   out = "";
-  out += "; " + arrayName + "[ " + indexExp + " ]\r\n";
-  out += "; NOTE: DEREFERENCING IS NOT YET IMPLEMENTED\r\n";
-  out += "; This is currently evaluated as: (" + indexExp + ")\r\n";
+  //out += "; " + arrayName + "[ " + indexExp + " ]\r\n";
+  //out += "; NOTE: DEREFERENCING IS NOT YET IMPLEMENTED\r\n";
+  //out += "; This is currently evaluated as: (" + indexExp + ")\r\n";
   success = parseExp(indexExp, pOut);
   out += pOut;
+  out += "; " + arrayName + "[" + indexExp + " ]\r\n";
+  out += "push ecx\r\n";
+  out += "push eax\r\npush " + arrayName + "\r\ncall _getValue\r\n";
+  out += "add esp, 8\r\npop ecx\r\n";
   return success;
 }
 
