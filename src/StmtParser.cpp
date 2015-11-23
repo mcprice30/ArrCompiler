@@ -49,7 +49,7 @@ bool StmtParser::parseStmtList(string text, string &out) {
     if (success) {
       success = success && parseStmtList(leftList, slout);
       out = slout;
-      out += "\r\n; Next Statement\r\n";
+      out += "; Next Statement\r\n";
       out += sout;
       return success;
     } else {
