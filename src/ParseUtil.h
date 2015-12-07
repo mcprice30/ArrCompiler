@@ -46,6 +46,11 @@ public:
   // Outputs:  true if text is a char literal, false otherwise.
   bool isCharLiteral(std::string text);
 
+  // Function: trim
+  // Inputs:   A string, potentially with leading or following spaces.
+  // Outputs:  The string, with leading and following spaces removed.
+  std::string trim(std::string text);
+
 };
 
 #endif

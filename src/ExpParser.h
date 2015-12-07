@@ -3,15 +3,18 @@
 
 #include "ParseUtil.h"
 
+#include <sstream>
 #include <string>
 #include <iostream>
 #include <vector>
 #include <cstdlib>
-
+#include <set>
+#include <map>
 
 class ExpParser {
 
 private:
+  std::map<std::string, int>* arrNames;
   bool debug;
   ParseUtil pUtil;
 
@@ -19,7 +22,7 @@ public:
 
   // Constructor for Parser.
   // Inputs: debugSwitch - true to enable debugging statements, false otherwise.
-  ExpParser(bool debugSwitch);
+  ExpParser(bool debugSwitch, std::map<std::string, int>* arrNames_in);
 
   ExpParser();
   // ===========================
@@ -81,7 +84,7 @@ public:
   // Outputs:   Assembly for the deference.
   // TODO: Finish this function. parseDeref currently evaluates this as
   //       (indexExp) rather than deferencing the array.
-  bool parseDeref(std::string arrayName, std::string indexExp, std::string &out);
+  bool parseDeref(std::string arrName, std::string indexExp, std::string &out);
 
   // Function: parseNum
   // Inputs:   number - A string to parse as a number.

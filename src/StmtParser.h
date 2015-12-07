@@ -4,12 +4,18 @@
 #include "ExpParser.h"
 #include "ParseUtil.h"
 
+
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <set>
+#include <map>
 
 class StmtParser {
+
 private:
+
+  std::map<std::string, int>* arrNames;
   bool debug;
   ExpParser expParser;
   ParseUtil parseUtil;

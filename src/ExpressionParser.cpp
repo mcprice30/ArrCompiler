@@ -2,9 +2,10 @@
 
 using namespace std;
 
-ExpParser::ExpParser(bool debugSwitch) {
+ExpParser::ExpParser(bool debugSwitch, map<string, int>* arrNames_in) {
   debug = debugSwitch;
   pUtil = ParseUtil();
+  arrNames = arrNames_in;
 }
 
 ExpParser::ExpParser() {
@@ -177,15 +178,15 @@ bool ExpParser::parseAdd(string lExp, string rTerm, string &out) {
   bool success = true;
   string lOut = "", rOut = "";
   out = "";
-  out += "; " + lExp+ " + " + rTerm + "\r\n";
+  out += "; " + lExp+ " + " + rTerm + "\n";
   success = success && parseTerm(rTerm, rOut);
   out += rOut;
-  out += "push ebx\r\n";
-  out += "mov ebx, eax\r\n";
+  out += "push ebx\n";
+  out += "mov ebx, eax\n";
   success = success && parseExp(lExp, lOut);
   out += lOut;
-  out += "add eax, ebx\r\n";
-  out += "pop ebx\r\n";
+  out += "add eax, ebx\n";
+  out += "pop ebx\n";
   return success;
 }
 
@@ -193,15 +194,15 @@ bool ExpParser::parseSub(string lExp, string rTerm, string &out) {
   string rOut = "", lOut = "";
   bool success = true;
   out = "";
-  out += "; " + lExp + " - " + rTerm + "\r\n";
+  out += "; " + lExp + " - " + rTerm + "\n";
   success = success && parseTerm(rTerm, rOut);
   out += rOut;
-  out += "push ebx\r\n";
-  out += "mov ebx, eax\r\n";
+  out += "push ebx\n";
+  out += "mov ebx, eax\n";
   success = success && parseExp(lExp, lOut);
   out += lOut;
-  out += "sub eax, ebx\r\n";
-  out += "pop ebx\r\n";
+  out += "sub eax, ebx\n";
+  out += "pop ebx\n";
   return success;
 }
 
@@ -209,38 +210,48 @@ bool ExpParser::parseMul(string lTerm, string rId, string &out) {
   string lOut = "", rOut = "";
   bool success = true;
   out = "";
-  out += "; " + lTerm + " * " + rId + "\r\n";
+  out += "; " + lTerm + " * " + rId + "\n";
   success = success && parseId(rId, rOut);
   out += rOut;
-  out += "push ebx\r\n";
-  out += "mov ebx, eax\r\n";
+  out += "push ebx\n";
+  out += "mov ebx, eax\n";
   success = success && parseTerm(lTerm, lOut);
   out += lOut;
-  out += "imul eax, ebx\r\n";
-  out += "pop ebx\r\n";
+  out += "imul eax, ebx\n";
+  out += "pop ebx\n";
   return success;
 }
 
-bool ExpParser::parseDeref(string arrayName, string indexExp, string &out) {
+bool ExpParser::parseDeref(string arrName, string indexExp, string &out) {
   bool success = true;
   string pOut = "";
   out = "";
-  //out += "; " + arrayName + "[ " + indexExp + " ]\r\n";
-  //out += "; NOTE: DEREFERENCING IS NOT YET IMPLEMENTED\r\n";
-  //out += "; This is currently evaluated as: (" + indexExp + ")\r\n";
+  //out += "; " + arrayName + "[ " + indexExp + " ]\n";
+  //out += "; NOTE: DEREFERENCING IS NOT YET IMPLEMENTED\n";
+  //out += "; This is currently evaluated as: (" + indexExp + ")\n";
   success = parseExp(indexExp, pOut);
   out += pOut;
-  out += "; " + arrayName + "[" + indexExp + " ]\r\n";
-  out += "push ecx\r\n";
-  out += "push eax\r\npush " + arrayName + "\r\ncall _getValue\r\n";
-  out += "add esp, 8\r\npop ecx\r\n";
+  arrName = pUtil.trim(arrName);
+  int array_id = 0;
+  if (arrNames->find(arrName) != arrNames->end()) {
+    array_id = (*arrNames)[arrName];
+  } else {
+    array_id = arrNames->size();
+    (*arrNames)[arrName] = array_id;
+  }
+  stringstream ss;
+  ss << array_id;
+  out += "; " + arrName + "[" + indexExp + " ]\n";
+  out += "push ecx\n";
+  out += "push eax\npush " + ss.str() + "\ncall getValue\n";
+  out += "add esp, 8\npop ecx\n";
   return success;
 }
 
 bool ExpParser::parseNum(string number, string &out) {
   if(debug) {cout << "NUMBER " << number << endl;}
   out = "";
-  out += "; assignment\r\n";
-  out += "mov eax, " + number + "\r\n";
+  out += "; assignment\n";
+  out += "mov eax, " + number + "\n";
   return true;
 }

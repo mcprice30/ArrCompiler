@@ -218,3 +218,19 @@ bool ParseUtil::isCharLiteral(string text) {
   return true;
 
 }
+
+string ParseUtil::trim(string text) {
+  int start = 0, end = -1;
+  bool started = false;
+  for (int i = 0; i < text.size(); i++) {
+    if (!started && text.at(i) != ' ') {
+      start = i;
+      end = i;
+      started = true;
+    } else if (started && text.at(i) != ' '){
+      end = i;
+    }
+  }
+  //cout << "TRIMMING \"" << text << "\" to \""  << text.substr(start, end-start+1) << "\"" << endl;
+  return text.substr(start, end-start+1);
+}
