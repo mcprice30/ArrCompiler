@@ -7,8 +7,8 @@ using namespace std;
 int main() {
   cout << "EXPRESSION PARSER TEST" << std::endl;
 
-  ExpParser parse = ExpParser(true);
-  StmtParser sparse = StmtParser(true);
+  ExpParser parse = ExpParser(true, false, new map<string, int>);
+  StmtParser sparse = StmtParser(true, false);
   ParseUtil p = ParseUtil();
   Tester t = Tester();
 

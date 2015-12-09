@@ -2,9 +2,10 @@
 
 using namespace std;
 
-ExpParser::ExpParser(bool debugSwitch, map<string, int>* arrNames_in) {
+ExpParser::ExpParser(bool debugSwitch, bool tres_in, map<string, int>* arrNames_in) {
   debug = debugSwitch;
   pUtil = ParseUtil();
+  treasure = tres_in;
   arrNames = arrNames_in;
 }
 
@@ -251,7 +252,11 @@ bool ExpParser::parseDeref(string arrName, string indexExp, string &out) {
 bool ExpParser::parseNum(string number, string &out) {
   if(debug) {cout << "NUMBER " << number << endl;}
   out = "";
-  out += "; assignment\n";
+  if (treasure) {
+    out += "; Puttin' tha number in\n";
+  } else {
+    out += "; assignment\n";
+  }
   out += "mov eax, " + number + "\n";
   return true;
 }

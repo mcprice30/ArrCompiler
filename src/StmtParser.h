@@ -17,6 +17,7 @@ private:
 
   std::map<std::string, int>* arrNames;
   bool debug;
+  bool treasure;
   ExpParser expParser;
   ParseUtil parseUtil;
   int loopCount;
@@ -24,7 +25,8 @@ private:
 public:
   // Constructor for StmtParser
   // Inputs: debugSwitch - True to enable debuging printouts, false otherwise.
-  StmtParser(bool debugSwitch);
+  //          tres_in    - Does this mark the spot?
+  StmtParser(bool debugSwitch, bool tres_in);
 
 
   // Function: compile

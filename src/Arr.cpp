@@ -6,7 +6,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
   if (argc == 1) { // Print compiler info and end.
-    cout << "Arr compiler - Beta" << endl;
+    cout << "Usage: arr <filename> [flags]" << endl;
     return 0;
   }
 
@@ -42,11 +42,18 @@ int main(int argc, char* argv[]) {
   }
 
   if (help) {
-    cout << "Fill this in later." << endl;
+    cout << "Usage: arr <filename> [flags]" << endl;
+    cout << "    Flags:" << endl;
+    cout << "-verbose - Enable verbose printout during compilation." << endl;
+    cout << "-asm - Keep generated assembly (stored in a .cpp file)." << endl;
+    cout << "-noexe - Only generate assembly. Do not compile to executable." << endl;
+    cout << "-help - See usage and flags." << endl;
+    cout << "-version - See current version." << endl;
   } else if (version) {
-    cout << "Version something or another, i guess." << endl;
+    cout << "Arr compiler - Version 1.0.0" << endl;
+    cout << "(C) Mitchell C. Price and Jeffrey L. Overbey, December 2015" << endl;
   } else  if (start > 1){
-    StmtParser p = StmtParser(verbose);
+    StmtParser p = StmtParser(verbose, eEgg);
     ifstream input;
     input.open(filename.c_str());
     string src = "", line = "";
@@ -62,15 +69,23 @@ int main(int argc, char* argv[]) {
       }
       input.close();
 
+      string o;
+
       ofstream output;
       output.open(outfile.c_str());
-      output << p.compile(src);
+      output << (o = p.compile(src));
       output.close();
 
+      if (o == "Did not compile.") {
+        string cleanCommand = "rm " + outfile;
+        system(cleanCommand.c_str());
+        exit(1);
+      }
+
       if (!noexe) {
-        string asmCmd = "cl " + outfile ;
+        string asmCmd = "cl " + outfile  + " > _ignore.txt 2>&1";
         system(asmCmd.c_str());
-        string cleanCommand = "rm " + objfile;
+        string cleanCommand = "rm _ignore.txt " + objfile;
         system(cleanCommand.c_str());
       }
 

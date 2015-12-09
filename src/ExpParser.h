@@ -16,13 +16,15 @@ class ExpParser {
 private:
   std::map<std::string, int>* arrNames;
   bool debug;
+  bool treasure;
   ParseUtil pUtil;
 
 public:
 
   // Constructor for Parser.
   // Inputs: debugSwitch - true to enable debugging statements, false otherwise.
-  ExpParser(bool debugSwitch, std::map<std::string, int>* arrNames_in);
+  //         tres_in     - Does this mark the spot?
+  ExpParser(bool debugSwitch, bool tres_in, std::map<std::string, int>* arrNames_in);
 
   ExpParser();
   // ===========================

@@ -4,10 +4,11 @@
 
 using namespace std;
 
-StmtParser::StmtParser(bool debugSwitch) {
+StmtParser::StmtParser(bool debugSwitch, bool tres_in) {
   debug = debugSwitch;
+  treasure = tres_in;
   arrNames = new map<string, int>();
-  expParser = ExpParser(debugSwitch, arrNames);
+  expParser = ExpParser(debugSwitch, tres_in, arrNames);
   loopCount = 1;
 }
 
@@ -57,7 +58,11 @@ bool StmtParser::parseStmtList(string text, string &out) {
     if (success) {
       success = success && parseStmtList(leftList, slout);
       out = slout;
-      out += "; Next Statement\n";
+      if (treasure) {
+        out += "; Here be the next of the statements\n";
+      } else {
+        out += "; Next Statement\n";
+      }
       out += sout;
       return success;
     } else {
@@ -132,7 +137,11 @@ bool StmtParser::parsePrint(string text, string &out) {
   string evalResult = "";
   bool result = expParser.parseExp(text, evalResult);
   out = evalResult;
-  out += "; Printing value\n";
+  if (treasure) {
+    out += "; Printin' t' value\n";
+  } else {
+    out += "; Printing value\n";
+  }
   out += "push ecx\npush eax\ncall print\nadd esp, 4\npop ecx\n";
   //out += "; TODO: call print function on eax.\n";
   return result;
@@ -142,7 +151,11 @@ bool StmtParser::parsePrintChar(string text, string &out) {
   string evalResult = "";
   bool result = expParser.parseExp(text, evalResult);
   out = evalResult;
-  out += "; Printing value\n";
+  if (treasure) {
+    out += "; Printin' t' value\n";
+  } else {
+    out += "; Printing value\n";
+  }
   out += "push ecx\npush eax\ncall printChar\nadd esp, 4\npop ecx\n";
   //out += "; TODO: call print char function on eax.\n";
   return result;
@@ -245,10 +258,18 @@ bool StmtParser::parseForLoop(string text, string &out) {
   ss << loopCount++;
   arrStream << array_id;
   string loopName = ss.str();
-  out += "; beginning of for loop\n";
+  if (treasure) {
+    out += "; Here lay the start of the faaaaar loop\n";
+  } else {
+    out += "; Beginning of for loop\n";
+  }
   string evalResult = "";
   out += "push ecx\nmov ecx, 0\n";
-  out += "top_" + loopName + ": nop\n";
+  if (treasure) {
+    out += "fore_" + loopName + ": nop\n";
+  } else {
+    out += "top_" + loopName + ": nop\n";
+  }
   compiled = compiled && expParser.parseExp(exp_3, evalResult);
   out += evalResult;
   out += "push ebx\n";
@@ -257,7 +278,11 @@ bool StmtParser::parseForLoop(string text, string &out) {
   out += evalResult;
   out += "add eax, ecx\ninc ecx\n";
   out += "cmp eax, ebx\npop ebx\n";
-  out += "jg done_" + loopName + "\n";
+  if (treasure) {
+    out += "jg aft_" + loopName + "\n";
+  } else {
+    out += "jg done_" + loopName + "\n";
+  }
   out += "push ebx\n";
   out += "mov ebx, eax\n";
   compiled = compiled && expParser.parseExp(exp_1, evalResult);
@@ -269,8 +294,13 @@ bool StmtParser::parseForLoop(string text, string &out) {
   evalResult = "";
   compiled = compiled && parseStmt(stmt, evalResult);
   out += evalResult;
-  out += "jmp top_" + loopName + "\n";
-  out += "done_" + loopName + ": pop ecx\n";
+  if (treasure) {
+    out += "jmp fore_" + loopName + "\n";
+    out += "aft_" + loopName + ": pop ecx\n";
+  } else {
+    out += "jmp top_" + loopName + "\n";
+    out += "done_" + loopName + ": pop ecx\n";
+  }
   return compiled;
 }
 
@@ -351,14 +381,27 @@ bool StmtParser::parseAssignment(string text, string &out) {
   string evalResult = "";
   bool compiled = true;
   out += "push ecx\n";
-  out += "; assignment statement for: " + text + "\n";
-  out += "; pushing array name\n";
+  if (treasure) {
+    out += "; Stowin' " + text + " away\n";
+    out += "; Puttin' tha arrrrrrrrray on tha stack\n";
+  } else {
+    out += "; assignment statement for: " + text + "\n";
+    out += "; pushing array name\n";
+  }
   out += "push " + ss.str() + "\n";
-  out += "; pushing index expression: " + idxExp + "\n";
+  if (treasure) {
+    out += "; Markin' this spot on tha treasure map: " + idxExp + "\n";
+  } else {
+    out += "; pushing index expression: " + idxExp + "\n";
+  }
   compiled = compiled && expParser.parseExp(idxExp, evalResult);
   out += evalResult;
   out += "push eax\n";
-  out += "; pushing rhs expression: " + rhs + "\n";
+  if (treasure) {
+    out += "; Buryin' the treasure: " + rhs + "\n";
+  } else {
+    out += "; pushing rhs expression: " + rhs + "\n";
+  }
   compiled = compiled && expParser.parseExp(rhs, evalResult);
   out += evalResult;
   out += "push eax\n";
