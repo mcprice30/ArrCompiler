@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
       version = true;
     } else {
       cout << "Error - invalid flag: " << flag << endl;
+      exit(1);
     }
   }
 
@@ -50,7 +51,10 @@ int main(int argc, char* argv[]) {
     input.open(filename.c_str());
     string src = "", line = "";
 
-    string outfile = filename.substr(0, filename.rfind(".")) + ".cpp";
+    string fprefix = filename.substr(0, filename.rfind("."));
+
+    string outfile = fprefix + ".cpp";
+    string objfile = fprefix + ".obj";
 
     if (input.good()) {
       while (getline(input, line)) {
@@ -66,6 +70,13 @@ int main(int argc, char* argv[]) {
       if (!noexe) {
         string asmCmd = "cl " + outfile ;
         system(asmCmd.c_str());
+        string cleanCommand = "rm " + objfile;
+        system(cleanCommand.c_str());
+      }
+
+      if (!keepAsm && !noexe) {
+        string cleanCommand = "rm " + outfile;
+        system(cleanCommand.c_str());
       }
 
     } else {

@@ -257,7 +257,7 @@ bool StmtParser::parseForLoop(string text, string &out) {
   out += evalResult;
   out += "add eax, ecx\ninc ecx\n";
   out += "cmp eax, ebx\npop ebx\n";
-  out += "jge done_" + loopName + "\n";
+  out += "jg done_" + loopName + "\n";
   out += "push ebx\n";
   out += "mov ebx, eax\n";
   compiled = compiled && expParser.parseExp(exp_1, evalResult);
